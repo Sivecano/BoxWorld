@@ -62,7 +62,7 @@ namespace events
 
         bool is(C* inst, out (C::*method)(in...))
         {
-            return obj == inst && method == meth;
+            return (obj == inst) && (method == meth);
         }
     };
 
@@ -82,9 +82,9 @@ namespace events
 
         void sub(out (*func)(in...))
         {
-            for(wrapper<out, in...>* f : subs)
-                if (typeid(f) == typeid(fwrapper<out, in...>*))
-                    if (((fwrapper<out, in...>*)f)->is(func))
+            for(int i = 0; i < subs.size(); i++)
+                if (typeid(*subs[i]) == typeid(fwrapper<out, in...>))
+                    if (((fwrapper<out, in...>*)subs[i])->is(func))
                     return;
 
             subs.push_back(new fwrapper<out, in...>(func));
@@ -94,9 +94,9 @@ namespace events
         template<class C>
         void sub(C* instance, out (C::*method)(in...))
         {
-            for(wrapper<out, in...>* f : subs)
-                if (typeid(f) == typeid(mwrapper<C, out, in...>*))
-                    if (((mwrapper<C, out, in...>*)f)->is(instance, method))
+            for(int i = 0; i < subs.size(); i++)
+                if (typeid(*subs[i]) == typeid(mwrapper<C, out, in...>))
+                    if (((mwrapper<C, out, in...>*)subs[i])->is(instance, method))
                         return;
 
             subs.push_back(new mwrapper<C, out, in...>(instance, method));
@@ -107,7 +107,7 @@ namespace events
         void unsub(out (*func)(in...))
         {
             for (int i = 0;i < subs.size(); i++)
-                if (typeid(subs[i]) == typeid(fwrapper<out, in...>*))
+                if (typeid(*subs[i]) == typeid(fwrapper<out, in...>))
                     if ((fwrapper<out, in...>*)subs[i]->is(func))
                     {
                         delete subs[i];
@@ -122,7 +122,7 @@ namespace events
         void unsub(C* instance, out (C::*method)(in...))
         {
             for(int i = 0; i < subs.size(); i++)
-                if (typeid(subs[i]) == typeid(mwrapper<C, out, in...>*))
+                if (typeid(*subs[i]) == typeid(mwrapper<C, out, in...>))
                     if (((mwrapper<C, out, in...>*)subs[i])->is(instance, method))
                     {
                         delete subs[i];
@@ -149,9 +149,9 @@ namespace events
 
         void sub(void (*func)(in...))
         {
-            for(wrapper<void, in...>* f : subs)
-                if (typeid(f) == typeid(fwrapper<void, in...>*))
-                    if (((fwrapper<void, in...>*)f)->is(func))
+            for(int i = 0; i < subs.size(); i++)
+                if (typeid(*subs[i]) == typeid(fwrapper<void, in...>))
+                    if (((fwrapper<void, in...>*)subs[i])->is(func))
                     return;
             subs.push_back(new fwrapper<void, in...>(func));
         }
@@ -159,9 +159,9 @@ namespace events
         template<class C>
         void sub(C* instance, void (C::*method)(in...))
         {
-            for(wrapper<void, in...>* f : subs)
-                if (typeid(f) == typeid(mwrapper<C, void, in...>*))
-                    if (((mwrapper<C, void, in...>*)f)->is(instance, method))
+            for(int i = 0; i < subs.size(); i++)
+                if (typeid(*subs[i]) == typeid(mwrapper<C, void, in...>))
+                    if (((mwrapper<C, void, in...>*)subs[i])->is(instance, method))
                         return;
 
             subs.push_back(new mwrapper<C, void, in...>(instance, method));
@@ -170,7 +170,7 @@ namespace events
         void unsub(void (*func)(in...))
         {
             for (int i = 0;i < subs.size(); i++)
-                if (typeid(subs[i]) == typeid(fwrapper<void, in...>*))
+                if (typeid(*subs[i]) == typeid(fwrapper<void, in...>))
                     if (((fwrapper<void, in...>*)subs[i])->is(func))
                     {
                         delete subs[i];
@@ -183,7 +183,7 @@ namespace events
         void unsub(C* instance, void (C::*method)(in...))
         {
             for(int i = 0; i < subs.size(); i++)
-                if (typeid(subs[i]) == typeid(mwrapper<C, void, in...>*))
+                if (typeid(*subs[i]) == typeid(mwrapper<C, void, in...>))
                     if (((mwrapper<C, void, in...>*)subs[i])->is(instance, method))
                     {
                         delete subs[i];
