@@ -3,7 +3,7 @@
 
 Box::Box(float x, float y, float h, float w, bool dynamic)
 {
-    update_event.sub(this, &Box::update);
+    //update_event.sub(this, &Box::update);
     //update_event.sub(this, Box::update);
 }
 

@@ -10,8 +10,18 @@ namespace events
 {
 
     template<typename out, typename ...in>
-    class fwrapper
+    class wrapper
     {
+    public:
+        virtual out call(in... args) = 0;        
+    };
+
+    template<typename out, typename ...in>
+    class fwrapper : public wrapper<out, in...>
+    {
+    private:
+        out (*func)(in...);
+
     public:
         fwrapper(out (*function)(in...)):
         func(function)
@@ -19,53 +29,107 @@ namespace events
 
         }
 
-        out operator()(in... args)
+        out call(in... args) override
         {
             return func(args...);
         }
 
-        bool operator==(out (*function)(in...))
+        bool is(out (*function)(in...))
         {
             return func == function;
         }
+    };
 
-    private:
-        out (*func)(in...);
+
+    template<class C, typename out, typename ...in>
+    class mwrapper : public wrapper<out, in...>
+    {
+    private: 
+        C* obj;
+        out (C::*meth)(in...);
+
+    public:
+        mwrapper(C* inst, out (C::*method)(in...)):
+        obj(inst), meth(method)
+        {
+
+        }
+
+        out call(in... args) override
+        {
+            return (obj->*meth)(args...);
+        }
+
+        bool is(C* inst, out (C::*method)(in...))
+        {
+            return obj == inst && method == meth;
+        }
     };
 
     template<typename out, typename ...in>
     class event
     {
     private:
-        std::vector<fwrapper<out, in...>> subs;
-
+        std::vector<wrapper<out, in...>*> subs;
     public:
         std::vector<out> outs;
 
         void operator()(in... args)
         {
             for (int i = 0; i < subs.size(); i++)
-                outs[i] = subs[i](args...);
+                outs[i] = subs[i]->call(args...);
         }
 
         void sub(out (*func)(in...))
         {
-            for(auto f : subs)
-                if (f == func)
+            for(wrapper<out, in...>* f : subs)
+                if (typeid(f) == typeid(fwrapper<out, in...>*))
+                    if (((fwrapper<out, in...>*)f)->is(func))
                     return;
 
-            subs.push_back(fwrapper<out, in...>(func));
+            subs.push_back(new fwrapper<out, in...>(func));
             outs.resize(subs.size());
         }
+
+        template<class C>
+        void sub(C* instance, out (C::*method)(in...))
+        {
+            for(wrapper<out, in...>* f : subs)
+                if (typeid(f) == typeid(mwrapper<C, out, in...>*))
+                    if (((mwrapper<C, out, in...>*)f)->is(instance, method))
+                        return;
+
+            subs.push_back(new mwrapper<C, out, in...>(instance, method));
+            outs.resize(subs.size());
+        }
+
 
         void unsub(out (*func)(in...))
         {
             for (int i = 0;i < subs.size(); i++)
-                if (subs[i] == func){
-                    subs.erase(subs.begin() + i);
-                    break;
-                }
+                if (typeid(subs[i]) == typeid(fwrapper<out, in...>*))
+                    if ((fwrapper<out, in...>*)subs[i]->is(func))
+                    {
+                        delete subs[i];
+                        subs.erase(subs.begin() + i);
+                        break;
+                    }
             
+            outs.resize(subs.size());
+        }
+
+        template<class C>
+        void unsub(C* instance, out (C::*method)(in...))
+        {
+            for(int i = 0; i < subs.size(); i++)
+                if (typeid(subs[i]) == typeid(mwrapper<C, out, in...>*))
+                    if (((mwrapper<C, out, in...>*)subs[i])->is(instance, method))
+                    {
+                        delete subs[i];
+                        subs.erase(subs.begin() + i);
+                        break;
+                    }
+
             outs.resize(subs.size());
         }
     };
@@ -74,31 +138,58 @@ namespace events
     class event<void, in...>
     {
     private:
-        std::vector<fwrapper<void, in...>> subs;
+        std::vector<wrapper<void, in...>*> subs;
     public:
 
         void operator()(in... args)
         {
-            for (auto f : subs)
-                f(args...);
+            for (wrapper<void, in...>* f : subs)
+                f->call(args...);
         }
 
         void sub(void (*func)(in...))
         {
-            for(auto f : subs)
-                if (f == func)
+            for(wrapper<void, in...>* f : subs)
+                if (typeid(f) == typeid(fwrapper<void, in...>*))
+                    if (((fwrapper<void, in...>*)f)->is(func))
                     return;
+            subs.push_back(new fwrapper<void, in...>(func));
+        }
 
-            subs.push_back(fwrapper<void, in...>(func));
+        template<class C>
+        void sub(C* instance, void (C::*method)(in...))
+        {
+            for(wrapper<void, in...>* f : subs)
+                if (typeid(f) == typeid(mwrapper<C, void, in...>*))
+                    if (((mwrapper<C, void, in...>*)f)->is(instance, method))
+                        return;
+
+            subs.push_back(new mwrapper<C, void, in...>(instance, method));
         }
 
         void unsub(void (*func)(in...))
         {
             for (int i = 0;i < subs.size(); i++)
-                if (subs[i] == func){
-                    subs.erase(subs.begin() + i);
-                    break;
-                }
+                if (typeid(subs[i]) == typeid(fwrapper<void, in...>*))
+                    if (((fwrapper<void, in...>*)subs[i])->is(func))
+                    {
+                        delete subs[i];
+                        subs.erase(subs.begin() + i);
+                        break;
+                    }
+        }
+
+        template<class C>
+        void unsub(C* instance, void (C::*method)(in...))
+        {
+            for(int i = 0; i < subs.size(); i++)
+                if (typeid(subs[i]) == typeid(mwrapper<C, void, in...>*))
+                    if (((mwrapper<C, void, in...>*)subs[i])->is(instance, method))
+                    {
+                        delete subs[i];
+                        subs.erase(subs.begin() + i);
+                        return;
+                    }
         }
 
     };
