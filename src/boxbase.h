@@ -1,18 +1,25 @@
 #include "SDL2/SDL.h"
 #pragma once
 
+
 class Box
 {
-private:
+public:
     SDL_FRect shape;
     float mass;
     SDL_FPoint velocity;
-    SDL_FPoint force;
+    bool is_dynamic;
 
-public:
     Box(float x, float y, float h, float w, bool dynamic);
     ~Box();
     virtual void update(float dt);
     virtual void physupdate(float dt);
     void draw(SDL_Renderer* ren);
+};
+
+namespace boxphysics{
+    bool are_touching(Box* box1, Box* box2);
+    void collision(Box* box1, Box* box2);
+
+
 };
