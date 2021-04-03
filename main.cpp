@@ -12,7 +12,7 @@
 
 const int width = 1280;
 const int height = 720;
-const float elasticity = 0;
+const float elasticity = 1;
 
 std::vector<Box> scene;
 TTF_Font* font;
@@ -24,16 +24,16 @@ void update(float dt)
     {
         scene[i].shape.x += dt * scene[i].velocity.x;
         scene[i].shape.y += dt * scene[i].velocity.y;
-        //scene[i].velocity.y += dt * 1000;
+        //scene[i].velocity.y += dt * 500;
 
         if (scene[i].shape.x < 0 || scene[i].shape.x + scene[i].shape.w > width) {
             scene[i].shape.x -= dt * scene[i].velocity.x;
-            scene[i].velocity.x = -elasticity * scene[i].velocity.x;
+            scene[i].velocity.x = (-2 * signbit(scene[i].shape.x) + 1) * scene[i].velocity.x;
         }
 
         if (scene[i].shape.y < 0 || scene[i].shape.y + scene[i].shape.h > height) {
             scene[i].shape.y -= dt * scene[i].velocity.y;
-            scene[i].velocity.y = -elasticity * scene[i].velocity.y;
+            scene[i].velocity.y = (-2 * signbit(scene[i].shape.y) + 1) * scene[i].velocity.y;
         }
     }
 
@@ -79,6 +79,9 @@ int main(int argc, char* argv[])
         SDL_Log("font didn't load");
         return 1;
     }
+
+    scene.push_back(Box(1, 20, 50, 40, 40, true, 200));
+    scene.push_back(Box(1, 200, 50, 40, 40, true));
 
     for (int i = 0; i < 2000; i++)
         scene.push_back(Box(rand() % 50 + 1, rand() % width, rand() % height, 10, 10, true, rand() % 400 - 200, rand() % 400 - 200));
