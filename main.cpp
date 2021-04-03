@@ -20,6 +20,7 @@ void update(float dt)
     {
         scene[i].shape.x += dt * scene[i].velocity.x;
         scene[i].shape.y += dt * scene[i].velocity.y;
+        scene[i].velocity.y += 1000*dt;
 
         if (scene[i].shape.x < 0 || scene[i].shape.x > 1280)
             scene[i].velocity.x = abs(scene[i].velocity.x) * (signbit(scene[i].shape.x) * 2 -1);
@@ -32,7 +33,7 @@ void update(float dt)
         for (int j = i + 1; j < scene.size(); j++)
             if (boxphysics::are_touching(&scene[i], &scene[j])) {
                 float tvx = scene[i].velocity.x, tvy = scene[i].velocity.y;
-                boxphysics::collision(&scene[i], &scene[j]);
+                boxphysics::collision(&scene[i], &scene[j], .99);
                 scene[i].shape.x -= dt * tvx;
                 scene[i].shape.y -= dt * tvy;
                 //scene[j].shape.x += dt * scene[j].velocity.x;
@@ -45,7 +46,7 @@ void draw(SDL_Renderer* ren)
     SDL_SetRenderDrawColor(ren, 255, 255, 255, 255);
     SDL_RenderClear(ren);
     for (int i = 0; i < scene.size(); i++) {
-        SDL_SetRenderDrawColor(ren,255 - scene[i].mass * 255. / 12., 0, 100, 255);
+        SDL_SetRenderDrawColor(ren,255 - scene[i].mass * 255. / 50., 0, 100, 255);
         SDL_RenderFillRectF(ren, &scene[i].shape);
     }
     SDL_Colour textc = {0, 0,0, 255};
@@ -72,7 +73,8 @@ int main(int argc, char* argv[])
     }
 
     for (int i = 0; i < 2500; i++)
-        scene.push_back(Box(rand() % 11 + 1, rand() % 1280, rand() % 720, 10, 10, true, rand() % 400 - 200, rand() % 400 - 200));
+        scene.push_back(Box(rand() % 49 + 1, rand() % 1280, rand() % 720, 10, 10, true, rand() % 400 - 200, rand() % 400 - 200));
+
     SDL_Window* win;
     SDL_Renderer* ren;
     bool running = true;

@@ -1,7 +1,7 @@
 #include "boxbase.h"
 #include "globalevents.h"
 
-Box::Box(float mass, float x, float y, float h, float w, bool dynamic=true, float vx = 0, float vy = 0):
+Box::Box(float mass, float x, float y, float h, float w, bool dynamic, float vx, float vy):
 shape({x, y, h, w}), velocity({vx, vy}), is_dynamic(dynamic), mass(mass)
 {
 
@@ -37,7 +37,7 @@ bool boxphysics::are_touching(Box* box1, Box* box2)
     return (dx < box1->shape.w && -dx < box2->shape.w) && (dy < box1->shape.h && -dy < box2->shape.h);
 }
 
-void boxphysics::collision(Box* box1, Box* box2)
+void boxphysics::collision(Box* box1, Box* box2, float elasticity)
 {
     float* v1 = &box1->velocity.x;
     float* v2 = &box2->velocity.x;
@@ -59,7 +59,6 @@ void boxphysics::collision(Box* box1, Box* box2)
     }
 
     float dv = *v1 - *v2;
-    float a = box2->mass/box1->mass;
-    *v1 = dv* (1-a)/(1+a) + *v2;
-    *v2 += 2* dv / (1 + a);
+    *v1 = dv * (box1->mass - elasticity * box2->mass) / (box1->mass + box2->mass) + *v2;
+    *v2 = dv * (box1->mass + elasticity * box1->mass) / (box1->mass + box2->mass) + *v2;
 }

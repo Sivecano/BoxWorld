@@ -10,7 +10,7 @@ public:
     SDL_FPoint velocity;
     bool is_dynamic;
 
-    Box(float mass, float x, float y, float h, float w, bool dynamic, float vx, float vy);
+    Box(float mass, float x, float y, float h, float w, bool dynamic = true, float vx = 0, float vy = 0);
     ~Box();
     virtual void update(float dt);
     virtual void physupdate(float dt);
@@ -19,7 +19,7 @@ public:
 
 namespace boxphysics{
     bool are_touching(Box* box1, Box* box2);
-    void collision(Box* box1, Box* box2);
+    void collision(Box* box1, Box* box2, float elasticity = 1);
 
 
 };
