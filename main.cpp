@@ -26,11 +26,15 @@ void update(float dt)
         scene[i].shape.y += dt * scene[i].velocity.y;
         //scene[i].velocity.y += dt * 1000;
 
-        if (scene[i].shape.x < 0 || scene[i].shape.x + scene[i].shape.w > width)
-            scene[i].velocity.x = - elasticity * scene[i].velocity.x;
+        if (scene[i].shape.x < 0 || scene[i].shape.x + scene[i].shape.w > width) {
+            scene[i].shape.x -= dt * scene[i].velocity.x;
+            scene[i].velocity.x = -elasticity * scene[i].velocity.x;
+        }
 
-        if (scene[i].shape.y < 0 || scene[i].shape.y + scene[i].shape.h > height)
-            scene[i].velocity.y = - elasticity * scene[i].velocity.y;
+        if (scene[i].shape.y < 0 || scene[i].shape.y + scene[i].shape.h > height) {
+            scene[i].shape.y -= dt * scene[i].velocity.y;
+            scene[i].velocity.y = -elasticity * scene[i].velocity.y;
+        }
     }
 
     for(int i = 0; i < scene.size(); i++)
