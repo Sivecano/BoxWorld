@@ -49,16 +49,17 @@ void boxphysics::collision(Box* box1, Box* box2, float elasticity)
         v2 = &box2->velocity.y;
     }
 
+    float dv = *v1 - *v2;
+
     if (!box1->is_dynamic){
-        *v2 = -*v2;
+        *v2 = dv * (1 + elasticity) + *v2;
         return;
     }
     if (!box2->is_dynamic){
-        *v1 = -*v1;
+        *v1 = -dv * elasticity + *v2;
         return;
     }
 
-    float dv = *v1 - *v2;
     *v1 = dv * (box1->mass - elasticity * box2->mass) / (box1->mass + box2->mass) + *v2;
     *v2 = dv * (box1->mass + elasticity * box1->mass) / (box1->mass + box2->mass) + *v2;
 }

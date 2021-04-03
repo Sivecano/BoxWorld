@@ -10,6 +10,10 @@
 #include "boxbase.h"
 #include <random>
 
+const int width = 1280;
+const int height = 720;
+const float elasticity = 1;
+
 std::vector<Box> scene;
 TTF_Font* font;
 std::list<unsigned int> frametimes = {0,0,0,0,0,0,0,0,0,0};
@@ -20,20 +24,20 @@ void update(float dt)
     {
         scene[i].shape.x += dt * scene[i].velocity.x;
         scene[i].shape.y += dt * scene[i].velocity.y;
-        scene[i].velocity.y += 1000*dt;
+        scene[i].velocity.y += dt * 1000;
 
-        if (scene[i].shape.x < 0 || scene[i].shape.x > 1280)
-            scene[i].velocity.x = abs(scene[i].velocity.x) * (signbit(scene[i].shape.x) * 2 -1);
+        if (scene[i].shape.x < 0 || scene[i].shape.x + scene[i].shape.w > 1280)
+            scene[i].velocity.x = - elasticity * scene[i].velocity.x;
 
-        if (scene[i].shape.y < 0 || scene[i].shape.y > 720)
-            scene[i].velocity.y = abs(scene[i].velocity.y) * (signbit(scene[i].shape.y) * 2 -1);
+        if (scene[i].shape.y < 0 || scene[i].shape.y + scene[i].shape.h > 720)
+            scene[i].velocity.y = - elasticity * scene[i].velocity.y;
     }
 
     for(int i = 0; i < scene.size(); i++)
         for (int j = i + 1; j < scene.size(); j++)
             if (boxphysics::are_touching(&scene[i], &scene[j])) {
                 float tvx = scene[i].velocity.x, tvy = scene[i].velocity.y;
-                boxphysics::collision(&scene[i], &scene[j], .99);
+                boxphysics::collision(&scene[i], &scene[j], elasticity);
                 scene[i].shape.x -= dt * tvx;
                 scene[i].shape.y -= dt * tvy;
                 //scene[j].shape.x += dt * scene[j].velocity.x;
@@ -73,7 +77,7 @@ int main(int argc, char* argv[])
     }
 
     for (int i = 0; i < 2500; i++)
-        scene.push_back(Box(rand() % 49 + 1, rand() % 1280, rand() % 720, 10, 10, true, rand() % 400 - 200, rand() % 400 - 200));
+        scene.push_back(Box(rand() % 50 + 1, rand() % 1280, rand() % 720, 10, 10, true, rand() % 400 - 200, rand() % 400 - 200));
 
     SDL_Window* win;
     SDL_Renderer* ren;
