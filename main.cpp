@@ -12,7 +12,7 @@
 
 const int width = 1280;
 const int height = 720;
-const float elasticity = 1;
+const float elasticity = 0;
 
 std::vector<Box> scene;
 TTF_Font* font;
@@ -24,12 +24,12 @@ void update(float dt)
     {
         scene[i].shape.x += dt * scene[i].velocity.x;
         scene[i].shape.y += dt * scene[i].velocity.y;
-        scene[i].velocity.y += dt * 1000;
+        //scene[i].velocity.y += dt * 1000;
 
-        if (scene[i].shape.x < 0 || scene[i].shape.x + scene[i].shape.w > 1280)
+        if (scene[i].shape.x < 0 || scene[i].shape.x + scene[i].shape.w > width)
             scene[i].velocity.x = - elasticity * scene[i].velocity.x;
 
-        if (scene[i].shape.y < 0 || scene[i].shape.y + scene[i].shape.h > 720)
+        if (scene[i].shape.y < 0 || scene[i].shape.y + scene[i].shape.h > height)
             scene[i].velocity.y = - elasticity * scene[i].velocity.y;
     }
 
@@ -76,8 +76,8 @@ int main(int argc, char* argv[])
         return 1;
     }
 
-    for (int i = 0; i < 2500; i++)
-        scene.push_back(Box(rand() % 50 + 1, rand() % 1280, rand() % 720, 10, 10, true, rand() % 400 - 200, rand() % 400 - 200));
+    for (int i = 0; i < 2000; i++)
+        scene.push_back(Box(rand() % 50 + 1, rand() % width, rand() % height, 10, 10, true, rand() % 400 - 200, rand() % 400 - 200));
 
     SDL_Window* win;
     SDL_Renderer* ren;
@@ -86,7 +86,7 @@ int main(int argc, char* argv[])
     unsigned int ticks;
     unsigned int dt;
 
-    SDL_CreateWindowAndRenderer(1280, 720, SDL_WINDOW_SHOWN, &win, &ren);
+    SDL_CreateWindowAndRenderer(width, height, SDL_WINDOW_SHOWN, &win, &ren);
 
     while(running)
     {
