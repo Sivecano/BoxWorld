@@ -2,52 +2,58 @@
 #include "SDL2/SDL_net.h"
 #include "SDL2/SDL_ttf.h"
 #include <vector>
+#include <list>
 #include <functional>
 #include <string>
 #include "events.h"
 //#include "globalevents.h"
 #include "boxbase.h"
+#include <random>
 
-SDL_FRect a[2];
-float v1=1000, v2=200;
-float m1=2, m2=1;
-unsigned int dt;
+std::vector<Box> scene;
 TTF_Font* font;
+std::list<unsigned int> frametimes = {0,0,0,0,0,0,0,0,0,0};
 
 void update(float dt)
 {
-    a[0].x += dt * v1;
-    a[1].x += dt * v2;
-
-    if (a[0].x < 0) v1 = abs(v1);
-    if (a[0].x + a[0].w> 800) v1 = - abs(v1);
-    if (a[1].x < 0)  v2 = abs(v2);
-    if (a[1].x + a[1].w> 800) v2 = - abs(v2);
-
-    if (a[0].x - a[1].x < a[0].w && a[1].x - a[0].x < a[1].w)
+    for (int i = 0; i < scene.size(); i++)
     {
-        float dv = v1 - v2;
-        float a = m2/m1;
-        v1 = dv* (1-a)/(1+a) + v2;
-        v2 += 2* dv / (1 + a);
+        scene[i].shape.x += dt * scene[i].velocity.x;
+        scene[i].shape.y += dt * scene[i].velocity.y;
+
+        if (scene[i].shape.x < 0 || scene[i].shape.x > 1280)
+            scene[i].velocity.x = abs(scene[i].velocity.x) * (signbit(scene[i].shape.x) * 2 -1);
+
+        if (scene[i].shape.y < 0 || scene[i].shape.y > 720)
+            scene[i].velocity.y = abs(scene[i].velocity.y) * (signbit(scene[i].shape.y) * 2 -1);
     }
 
-
+    for(int i = 0; i < scene.size(); i++)
+        for (int j = i + 1; j < scene.size(); j++)
+            if (boxphysics::are_touching(&scene[i], &scene[j])) {
+                float tvx = scene[i].velocity.x, tvy = scene[i].velocity.y;
+                boxphysics::collision(&scene[i], &scene[j]);
+                scene[i].shape.x -= dt * tvx;
+                scene[i].shape.y -= dt * tvy;
+                //scene[j].shape.x += dt * scene[j].velocity.x;
+                //scene[j].shape.y += dt * scene[j].velocity.y;
+            }
 }
 
 void draw(SDL_Renderer* ren)
 {
     SDL_SetRenderDrawColor(ren, 255, 255, 255, 255);
     SDL_RenderClear(ren);
-    SDL_SetRenderDrawColor(ren, 200, 0, 100, 255);
-    SDL_RenderFillRectF(ren, a);
-    SDL_SetRenderDrawColor(ren, 255, 0, 0, 255);
-    SDL_RenderFillRectF(ren, a + 1);
+    for (int i = 0; i < scene.size(); i++) {
+        SDL_SetRenderDrawColor(ren,255 - scene[i].mass * 255. / 12., 0, 100, 255);
+        SDL_RenderFillRectF(ren, &scene[i].shape);
+    }
     SDL_Colour textc = {0, 0,0, 255};
-    
-    SDL_Surface* t = TTF_RenderText_Solid(font, std::to_string(1000./(dt + 0.000001)).c_str(), textc);
+
+
+    SDL_Surface* t = TTF_RenderText_Solid(font, std::to_string(10000./(std::accumulate(frametimes.begin(), frametimes.end(), 0.000000001))).c_str(), textc);
     SDL_Texture* tx =SDL_CreateTextureFromSurface(ren, t);
-    SDL_Rect dst = {0, 0, t->w * 20 / t->h, 20};
+    SDL_Rect dst = {5, 0, t->w * 20 / t->h, 20};
     SDL_RenderCopy(ren, tx, 0, &dst);
     SDL_RenderPresent(ren);
     SDL_FreeSurface(t);
@@ -58,29 +64,23 @@ int main(int argc, char* argv[])
 {
     SDL_Init(SDL_INIT_EVERYTHING);
     TTF_Init();
-    font = TTF_OpenFont("/usr/share/fonts/TTF/Hack-Regular.ttf", 12);
+    font = TTF_OpenFont("/usr/share/fonts/TTF/Hack-Regular.ttf", 20);
     if (font == NULL)
     {
         SDL_Log("font didn't load");
         return 1;
     }
 
-    Box test(0, 0, 10, 10, true);
-
-    a[1].h = a[1].w = a[0].h = a[0].w = 20;
-    a[0].y = a[1].y = 100;
-    a[0].x = 0;
-    a[1].x = 40;
-
-
-
+    for (int i = 0; i < 2500; i++)
+        scene.push_back(Box(rand() % 11 + 1, rand() % 1280, rand() % 720, 10, 10, true, rand() % 400 - 200, rand() % 400 - 200));
     SDL_Window* win;
     SDL_Renderer* ren;
     bool running = true;
     unsigned int last_ticks = 0;
     unsigned int ticks;
+    unsigned int dt;
 
-    SDL_CreateWindowAndRenderer(800, 600, SDL_WINDOW_SHOWN, &win, &ren);
+    SDL_CreateWindowAndRenderer(1280, 720, SDL_WINDOW_SHOWN, &win, &ren);
 
     while(running)
     {
@@ -93,8 +93,12 @@ int main(int argc, char* argv[])
         dt = ticks - last_ticks;
         last_ticks = ticks;
 
+        frametimes.pop_back();
+        frametimes.push_front(dt);
+
         update(dt / 1000.);
         draw(ren);
+
         
         //update_event(dt/1000.);
         //physupdate_event(dt/1000.);

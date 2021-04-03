@@ -1,8 +1,10 @@
 #include "boxbase.h"
 #include "globalevents.h"
 
-Box::Box(float x, float y, float h, float w, bool dynamic)
+Box::Box(float mass, float x, float y, float h, float w, bool dynamic=true, float vx = 0, float vy = 0):
+shape({x, y, h, w}), velocity({vx, vy}), is_dynamic(dynamic), mass(mass)
 {
+
     //update_event.sub(this, &Box::update);
     //update_event.sub(this, Box::update);
 }
@@ -40,7 +42,8 @@ void boxphysics::collision(Box* box1, Box* box2)
     float* v1 = &box1->velocity.x;
     float* v2 = &box2->velocity.x;
 
-    if (box1->shape.y - box2->shape.y < box1->shape.h && box2->shape.y - box1->shape.y < box2->shape.h)
+    if ((box1->velocity.y- box2->velocity.y > 0 ? (box2->shape.y - box1->shape.y - box1->shape.h) : (box2->shape.y + box2->shape.h - box1->shape.y)) / (box1->velocity.y- box2->velocity.y)
+    > (box1->velocity.x- box2->velocity.x > 0 ? (box2->shape.x - box1->shape.x - box1->shape.w) : (box2->shape.x + box2->shape.w - box1->shape.x)) / (box1->velocity.x- box2->velocity.x))
     {
         v1 = &box1->velocity.y;
         v2 = &box2->velocity.y;

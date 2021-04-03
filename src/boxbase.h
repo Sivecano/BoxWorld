@@ -10,7 +10,7 @@ public:
     SDL_FPoint velocity;
     bool is_dynamic;
 
-    Box(float x, float y, float h, float w, bool dynamic);
+    Box(float mass, float x, float y, float h, float w, bool dynamic, float vx, float vy);
     ~Box();
     virtual void update(float dt);
     virtual void physupdate(float dt);
