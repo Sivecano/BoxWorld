@@ -58,10 +58,10 @@ void cupdate(float dt)
 {
     for (auto & circl : cscene)
     {
-        if (circl.position.y > height - (circl.radius + 20))
+        /*if (circl.position.y > height - (circl.radius + 20))
             circl.velocity.x = 0;
         else
-            circl.velocity.y += dt * 500;
+            circl.velocity.y += dt * 500;*/
 
         circl.position +=  circl.velocity * dt;
 
