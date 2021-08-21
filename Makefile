@@ -4,10 +4,10 @@ comp = clang++
 FLAGS = -O2
 LIBS = -lSDL2_ttf -lSDL2_gfx -lSDL2
 
-FILES = main.cpp src/*.cpp
+OBJECTS = main.o src/boxbase.o src/circlecollider.o src/events.o src/vector.o
 
-build : $(FILES) Makefile
-	$(comp) -o build/boxworld $(FILES) $(LIBS) $(FLAGS) -I src
+build : $(OBJECTS) Makefile
+	$(comp) -o build/boxworld $(OBJECTS) $(LIBS) $(FLAGS) -I src
 
 dbuild : $(FILES) Makefile
 	$(comp) -o build/boxworld_debug $(FILES) $(LIBS) $(FLAGS) -I src -Wall -g
@@ -20,9 +20,13 @@ debug : dbuild
 
 all: build dbuild
 	echo "compiled all"
+
 emscripten: $(FILES)
 	source "/usr/lib/emsdk/emsdk_env.sh"  
 	sudo em++ $(FILES) $(FLAGS) -s USE_SDL=2 -I src -I /usr/include
+
+%.o: %.cpp
+	$(comp) -c $< -o $@ $(FLAGS) -I src
 
 clean: 
 	rm build/boxworld

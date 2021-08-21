@@ -23,20 +23,22 @@ void circlecollisions::collision(Circle &circle1, Circle &circle2, float elastic
     if (dv.squarelen() < 0.0000001)
         return;
 
-    float d = circle1.radius + circle2.radius; // distance that they should have
+    float d = circle1.radius + circle2.radius + 0.00001; // distance that they should have
     float t = (d - (circle1.position -circle2.position).len()) / dv.len(); // time since collision
 
     // go back to moment of collision
     circle1.position -= circle1.velocity * t;
     circle2.position -= circle2.velocity * t;
 
-    vector vecd = circle2.position - circle1.position; // vector from circle1 to circle 2 center to center vecd.len() should be d
+    // vector from circle1 to circle 2 center to center vecd.len() should be d
+    vector vecd = circle2.position - circle1.position; 
 
     vector vpar = vecd * ((vecd * dv) / (d*d)); // velocity parallel to distance vector
     vector vprp =  dv - vpar; // velocity perpendicular to distance vector
 
-    vector vp1 = vpar * (circle1.mass - elasticity * circle2.mass) / (circle1.mass + circle2.mass); // new vpar for circle 1
-    vector vp2 = vpar * (circle1.mass + elasticity * circle1.mass) / (circle1.mass + circle2.mass); // new vpar for circle 2
+    // new vpar for circle 1 & 2
+    vector vp1 = vpar * (circle1.mass - elasticity * circle2.mass) / (circle1.mass + circle2.mass); 
+    vector vp2 = vpar * (circle1.mass + elasticity * circle1.mass) / (circle1.mass + circle2.mass);
 
     circle1.velocity = vp1 + vprp + circle2.velocity;
     circle2.velocity = vp2 + vprp + circle2.velocity;

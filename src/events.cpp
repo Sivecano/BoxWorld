@@ -5,6 +5,7 @@
 #else
 
 #include<vector>
+#include <typeinfo>
 
 namespace events
 {
